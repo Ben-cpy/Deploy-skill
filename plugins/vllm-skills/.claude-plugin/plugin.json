@@ -1,0 +1,6 @@
+{
+  "name": "vllm-skills",
+  "description": "Deploy and benchmark vLLM with Claude Code",
+  "version": "1.0.0",
+  "keywords": ["vllm", "llm", "deployment", "benchmarking", "kubernetes", "docker"]
+}
