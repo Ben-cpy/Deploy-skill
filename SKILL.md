@@ -16,7 +16,7 @@ Skill installation only makes these instructions and resources available to Code
 Run this from any Codex session after the skill is available:
 
 ```bash
-python <skill_dir>/scripts/init_project.py --project <project_root>
+python scripts/init_project.py --project <project_root>
 ```
 
 Use `--force` only when the user explicitly allows replacing managed files. By default, existing files are preserved by writing `.bak.<timestamp>` backups before replacement.
