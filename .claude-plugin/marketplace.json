@@ -1,13 +1,13 @@
 {
-  "name": "vllm-skills",
+  "name": "deploy-skill",
   "owner": {
-    "name": "vLLM Project",
-    "url": "https://github.com/vllm-project"
+    "name": "Ben-cpy",
+    "url": "https://github.com/Ben-cpy"
   },
   "plugins": [
     {
-      "name": "vllm-skills",
-      "source": "./plugins/vllm-skills",
+      "name": "deploy-skill",
+      "source": "./plugins/deploy-skill",
       "description": "Skills for deploying and benchmarking vLLM with Claude Code",
       "version": "1.0.0"
     }
