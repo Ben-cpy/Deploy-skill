@@ -16,6 +16,7 @@ PROCESS.md
 00_WORKFLOW_MAP.md
 00_ROLE_AND_RESEARCH_TASTE.md
 12_GUARDRAILS_HOOKS_AND_BUDGETS.md
+config/workflow_manifest.json
 当前阶段 prompt
 ```
 
@@ -37,6 +38,8 @@ PROCESS.md
 - 不在未完成 smoke test 时运行 benchmark。
 - 不在 prefix cache 未确认命中时评价 LMCache 收益。
 - 不在没有真实执行证据时标记执行类任务完成。
+- 不并发运行多个 benchmark/workload/trial 来生成可比结果。
+- 不把 Mooncake 当作默认必做项；只有用户明确启用 multi-node/offload extension 时才进入 scope。
 
 ## 输出规范
 
@@ -49,3 +52,17 @@ PROCESS.md
 ## Stop 前检查
 
 如果当前任务是执行阶段，且修改了 `experiments/`、`runs/`、`results/`、`reports/`、`figures/` 任一目录，必须执行 stop review check。纯讨论、纯规划、只编辑 prompt 文档时不触发。
+
+Stop 前必须读取 `config/workflow_manifest.json`。如果 required/approved 子任务仍未完成，或 completed execution task 缺少 command、run_id、log extract、metrics、report、必要 figure，继续补跑或补产物，不要 final。
+
+## 最终交付
+
+用户主要阅读：
+
+```text
+reports/final_report.md
+reports/final_report.pdf
+reports/final_deployment_card.md
+```
+
+如果 PDF renderer 缺失，保留 `reports/final_report.md`，并写 `reports/final_report_pdf_dependency_missing.md`。

@@ -21,6 +21,8 @@ attention backend
 
 SGLang 或其他 engine 必须先查官方文档，映射到等价参数，不得直接套 vLLM 参数名。
 
+Stage 9 的命令必须引用 `reports/official_docs_lock.md` 中的 engine/backend/model 参数来源。若使用用户提供命令或本地经验参数，必须记录它与官方示例的差异和风险。
+
 ## 最大 trial 数
 
 ```text
@@ -61,7 +63,12 @@ workload used
 metrics
 log evidence
 keep/drop/uncertain
+serial execution confirmed
 ```
+
+## 串行执行规则
+
+trial 必须串行运行。每次运行前确认没有其他 active run 占用同一服务端口、同一 GPU/Ascend 设备、同一模型服务或同一输出目录。禁止并发跑多个参数 trial 后直接比较指标；并发叠加压力数据只能在用户明确要求时生成，并单独标记为非标准。
 
 ## 必须产出
 

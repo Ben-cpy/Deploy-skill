@@ -42,6 +42,7 @@ PROCESS.md
 prompts/00_WORKFLOW_MAP.md
 prompts/00_ROLE_AND_RESEARCH_TASTE.md
 prompts/12_GUARDRAILS_HOOKS_AND_BUDGETS.md
+config/workflow_manifest.json
 当前阶段 prompt
 ```
 
@@ -65,6 +66,8 @@ hooks/*
 - 不在未完成 smoke test 时运行 benchmark。
 - 不在 prefix cache 未确认命中时评价 LMCache 收益。
 - 不在没有真实执行证据时标记执行类任务完成。
+- 不并发运行多个 benchmark/workload/trial 来生成可比结果。
+- 不把 Mooncake 当作默认必做项；只有用户明确启用 multi-node/offload extension 时才进入 scope。
 
 ## 输出规范
 
@@ -77,6 +80,20 @@ hooks/*
 ## Stop 前检查
 
 如果当前任务是执行阶段，且修改了 `experiments/`、`runs/`、`results/`、`reports/`、`figures/` 任一目录，必须通过 `.codex/hooks/stop_kv_check.py`。纯讨论、纯规划、只编辑 prompt 文档时不触发重型检查。
+
+Stop 前必须读取 `config/workflow_manifest.json`。如果 required/approved 子任务仍未完成，或 completed execution task 缺少 command、run_id、log extract、metrics、report、必要 figure，继续补跑或补产物，不要 final。
+
+## 最终交付
+
+用户主要阅读：
+
+```text
+reports/final_report.md
+reports/final_report.pdf
+reports/final_deployment_card.md
+```
+
+如果 PDF renderer 缺失，保留 `reports/final_report.md`，并写 `reports/final_report_pdf_dependency_missing.md`。
 """
 
 README_MD = """# LLM Serving KV Diagnostics
@@ -88,14 +105,18 @@ README_MD = """# LLM Serving KV Diagnostics
 ## 如何运行
 
 1. 填写 `config/workflow.yaml`。
-2. 运行 Stage 1 锁定官方文档和 scope。
-3. 按 `prompts/00_WORKFLOW_MAP.md` 顺序执行。
-4. 每阶段只读当前阶段 prompt 和必要横向规范。
-5. 用户只 review `reports/` 和嵌入的 `figures/`。
+2. 检查 `config/workflow_manifest.json`，确认 Stage 1-10 子任务、required 状态和 plan-only 例外。
+3. 运行 Stage 1 锁定官方文档和 scope。
+4. 按 `prompts/00_WORKFLOW_MAP.md` 顺序执行。
+5. 每阶段只读当前阶段 prompt 和必要横向规范。
+6. 执行阶段 stop 前运行 `.codex/hooks/stop_kv_check.py`。
 
 ## 用户主要查看
 
 ```text
+reports/final_report.md
+reports/final_report.pdf
+reports/final_deployment_card.md
 reports/official_docs_lock.md
 reports/basic-info.md
 reports/workload_sizing.md
@@ -103,13 +124,21 @@ reports/baseline_kv_behavior.md
 reports/parallelism_decision.md
 reports/offload_decision.md
 reports/parameter_decision.md
-reports/final_deployment_card.md
 PROCESS.md
 ```
+
+`reports/final_report.md` 是主要阅读入口，正文中文，按 Stage 1-10 组织，只引用 canonical 数据、关键表和关键 png。若缺少 PDF 渲染工具，保留 Markdown，并生成 `reports/final_report_pdf_dependency_missing.md` 说明缺失依赖。
 
 ## 原始数据
 
 raw log 在 `runs/raw/`，失败/无效运行的必要摘要在 `runs/scratch_failed/`，最终有效结果在 `results/canonical/`。
+
+## 执行规则
+
+- 继续执行时先看 `config/workflow_manifest.json`，不要只完成少数子任务就宣称完成。
+- 每个完成的执行类任务必须记录 run_id、command、log extract、metrics、report 和必要 png。
+- benchmark/workload/trial 默认串行执行；不要并发运行多个 workload 污染可比性。
+- Mooncake 不是默认主流程；只有用户明确启用 multi-node/offload extension 时才进入 scope。
 """
 
 PROCESS_MD = """# PROCESS.md
@@ -129,16 +158,27 @@ skip:
   engine_acquisition: true
   model_download: true
   lmcache: false
+  mooncake: true
   parallelism_comparison: false
 
 docs:
   require_official_docs_lock: true
+  require_launch_command_alignment: true
+
+execution:
+  serial_benchmark_required: true
+  allow_parallel_stacked_load_only_when_user_requested: true
+  active_run_lock: ".codex_runtime/active_benchmark_run.json"
+
+manifest:
+  path: "config/workflow_manifest.json"
 
 budgets:
   smoke_launch_max_attempts: 3
   single_request_max_attempts: 3
   parallelism_configs_max: 3
   lmcache_bringup_max_attempts: 3
+  mooncake_bringup_max_attempts: 3
   parameter_trial_max: 6
   single_bottleneck_trial_max: 3
 
@@ -232,6 +272,7 @@ def main() -> int:
     write_file(project / "README.md", README_MD, args.force, changed)
     write_file(project / "PROCESS.md", PROCESS_MD, args.force, changed)
     write_file(project / "config" / "workflow.yaml", WORKFLOW_YAML, args.force, changed)
+    copy_file(ASSETS / "templates" / "WORKFLOW_MANIFEST_TEMPLATE.json", project / "config" / "workflow_manifest.json", args.force, changed)
     copy_file(REFERENCES / "matplotlib_paper_style.md", project / "PLOT_STYLE.md", args.force, changed)
 
     copy_tree_files(REFERENCES / "prompts", project / "prompts", args.force, changed)

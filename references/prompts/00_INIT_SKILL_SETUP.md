@@ -11,9 +11,10 @@ README.md
 AGENTS.md
 PROCESS.md
 config/workflow.yaml
+config/workflow_manifest.json
 ```
 
-README.md 面向用户，说明整体流程、如何操作、最终看哪些报告。AGENTS.md 面向 agent，只保留压缩版规则、当前阶段入口和 stop 前检查要求。PROCESS.md 记录经验教训和反复犯错点。config/workflow.yaml 控制 engine、backend、model、container、跳过项、最大迭代次数、输出目录。
+README.md 面向用户，说明整体流程、如何操作、最终主要看哪份长报告和 PDF。AGENTS.md 面向 agent，只保留压缩版规则、当前阶段入口、manifest 使用方法和 stop 前检查要求。PROCESS.md 记录经验教训和反复犯错点。config/workflow.yaml 控制 engine、backend、model、container、跳过项、最大迭代次数、输出目录。config/workflow_manifest.json 是机器可读的 Stage 1-10 子任务和证据清单。
 
 ## 必须创建的目录
 
@@ -45,6 +46,7 @@ config/
 - `results/canonical/`：只放唯一有效结果。
 - `reports/`：放用户阅读的中文 md。
 - `figures/`：放英文标签 matplotlib png，并在 md 中引用。
+- `config/workflow_manifest.json`：记录 Stage、子任务、status、required、plan_only、run_id、command/log/metrics/report/figure 路径、blocked_reason。Stop hook 根据它判断是否还有未完成任务。
 
 ## 必须创建的 hook 或等价检查器
 
@@ -59,6 +61,7 @@ hooks/process_compaction_check
 hooks/stop_review_check
 hooks/plot_report_check
 hooks/real_execution_evidence_check
+hooks/final_workflow_check
 ```
 
 最低行为：
@@ -71,6 +74,7 @@ hooks/real_execution_evidence_check
 - `stop_review_check`：只在真实执行阶段触发，触发条件见 `15_STOP_HOOK_AND_COMMIT_CHECKS.md`。
 - `plot_report_check`：检查 png 是否插入对应 md，图表是否使用英文。
 - `real_execution_evidence_check`：执行类任务没有 command、run_id、log extract、metrics/figure 时不得完成。
+- `final_workflow_check`：覆盖 Stage 1-10 必需产物、manifest 完成度、官方文档锁质量、最终报告和 PDF 交付物。
 
 ## AGENTS.md 内容边界
 
@@ -83,6 +87,8 @@ AGENTS.md 不要复制所有阶段 prompt，只保留：
 4. 禁止修改推理引擎源码
 5. 输出目录规则
 6. stop 前检查触发条件
+7. benchmark 默认串行执行，不允许多个 workload 同时打到同一服务、设备或模型
+8. 继续执行时必须先看 `config/workflow_manifest.json`，不要只完成少数子任务就停止
 ```
 
 详细阶段说明按需读取，避免上下文膨胀。

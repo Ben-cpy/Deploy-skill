@@ -4,6 +4,8 @@
 
 单节点默认评估 LMCache。判断外部 KV offload 是否能在 high_load / high_session 场景下扩大有效 KV capacity 或减少 recompute/preemption，同时不显著恶化 ITL/TPOT。
 
+Mooncake 不是默认主流程。只有用户明确启用 Mooncake、multi-node 或指定 offload extension 时，才把 Mooncake 纳入本阶段；纳入后必须先完成官方文档锁、启动命令来源、最大尝试次数、失败摘要和降级策略记录。
+
 ## 前置条件
 
 必须满足：
@@ -54,6 +56,8 @@ low_load
 high_load
 high_session
 ```
+
+所有 A/B workload 必须串行运行。不要让 baseline 与 LMCache 同时打到同一服务、设备或模型。并发只允许用于用户明确要求的叠加压力实验，并且不得进入标准 A/B 主表。
 
 ## 判断标准
 

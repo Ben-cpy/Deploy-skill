@@ -18,6 +18,11 @@ reports reference figures if figures exist
 PROCESS.md <= 20 bullets or compacted
 terms explained in user-facing md
 real execution evidence exists
+workflow/subtask manifest has no unfinished required/approved execution tasks
+Stage 1-10 required artifact matrix passes before final reporting
+official docs lock includes command alignment fields
+benchmark/workload/trial data follows serial execution unless explicitly marked non-standard
+final_report.md and final_report.pdf exist, or PDF dependency-missing note exists
 hard budgets not exceeded
 ```
 

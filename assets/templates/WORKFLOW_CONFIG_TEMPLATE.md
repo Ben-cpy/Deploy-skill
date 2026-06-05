@@ -12,16 +12,27 @@ skip:
   engine_acquisition: true
   model_download: true
   lmcache: false
+  mooncake: true
   parallelism_comparison: false
 
 docs:
   require_official_docs_lock: true
+  require_launch_command_alignment: true
+
+execution:
+  serial_benchmark_required: true
+  allow_parallel_stacked_load_only_when_user_requested: true
+  active_run_lock: ".codex_runtime/active_benchmark_run.json"
+
+manifest:
+  path: "config/workflow_manifest.json"
 
 budgets:
   smoke_launch_max_attempts: 3
   single_request_max_attempts: 3
   parallelism_configs_max: 3
   lmcache_bringup_max_attempts: 3
+  mooncake_bringup_max_attempts: 3
   parameter_trial_max: 6
   single_bottleneck_trial_max: 3
 

@@ -27,13 +27,25 @@
 
 ## 不做什么
 
-- 不做多节点主流程；Mooncake 只留未来扩展。
+- 不做多节点主流程；Mooncake 只在用户明确启用 multi-node/offload extension 时进入 scope。
 - 不修改推理引擎源码。
 - 不做无脑全排列 sweep。
 - 不在 smoke 未通过时跑负载。
 - 不在 prefix cache 未确认命中时评价 LMCache。
 - 不把失败/无效数据放进最终主报告。
+- 不并发运行多个 benchmark/workload/trial 来比较性能；默认所有可比实验串行执行。
 
 ## 关键思想
 
 实验不围绕“画性能曲线”展开，而围绕 KV pressure 展开。先建立系统 KV capacity 和 workload peak KV pressure 的对应关系，再判断 baseline、parallelism、offload、参数是否改变了真实瓶颈。
+
+## Manifest 驱动
+
+继续执行或准备停止前，读取 `config/workflow_manifest.json`：
+
+```text
+1. 找出 required/approved 且未 completed 的子任务。
+2. 检查每个 completed execution task 是否有 command、run_id、log extract、metrics、report、必要 figure。
+3. 环境允许时继续执行剩余子任务；不要只完成部分任务就汇报最终完成。
+4. plan_only 只能用于用户明确要求的计划/文档工作，不能算作真实执行完成。
+```

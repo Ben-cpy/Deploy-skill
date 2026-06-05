@@ -40,6 +40,9 @@ Stop hook 只在特定行为触发：
 11. 是否每个实验回答了具体问题
 12. 是否每个任务有真实执行证据
 13. 是否遵守最大迭代次数
+14. 是否 `config/workflow_manifest.json` 中 required/approved 子任务已完成，或明确 skipped/blocked
+15. 是否所有 benchmark/workload/trial 按串行假设运行；非标准并发数据是否隔离标注
+16. 是否最终交付物包含 `reports/final_report.md` 和 `reports/final_report.pdf` 或 PDF 依赖缺失说明
 ```
 
 ## PROCESS.md 压缩规则
@@ -64,3 +67,9 @@ reports/stop_check_summary.md
 ```
 
 如果检查失败，不能宣称任务完成，必须列出 blocking items。
+
+## Manifest 阻断规则
+
+执行阶段 stop 前必须读取 `config/workflow_manifest.json`。当 required/approved 子任务仍为 `pending`、`in_progress`、`attempt`、`failed` 或缺少 required artifact/evidence 时，Stop hook 必须阻断 final response，并输出 remaining tasks、missing artifacts 和 recommended next action。
+
+纯讨论、纯规划、只编辑 prompt 文档、尚未进入执行阶段时可以跳过重型 manifest 检查。

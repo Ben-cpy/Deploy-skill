@@ -16,6 +16,7 @@ WATCHED_PREFIXES = (
     "results/",
     "reports/",
     "figures/",
+    "config/workflow_manifest.json",
 )
 
 BLOCKED_PREFIXES = (
@@ -116,8 +117,27 @@ def check_process() -> list[str]:
 
 def check_official_docs(paths: list[str], stage_requires_docs: bool) -> list[str]:
     if stage_requires_docs or any(path.startswith(("experiments/", "runs/", "results/", "reports/")) for path in paths):
-        if not Path("reports/official_docs_lock.md").exists():
+        lock = Path("reports/official_docs_lock.md")
+        if not lock.exists():
             return ["reports/official_docs_lock.md is required before execution-stage reporting"]
+        text = read_text(lock).lower()
+        required_terms = [
+            "source",
+            "type",
+            "url",
+            "version",
+            "command",
+            "project command",
+            "difference",
+            "uncertainty",
+        ]
+        missing = [term for term in required_terms if term not in text]
+        if missing:
+            return [f"reports/official_docs_lock.md missing command-alignment fields: {', '.join(missing)}"]
+        auxiliary_count = len(re.findall(r"\b(auxiliary|community)\b", text))
+        official_count = len(re.findall(r"\b(official docs|official repo|model card|user provided)\b", text))
+        if official_count == 0 and auxiliary_count > 0:
+            return ["reports/official_docs_lock.md cannot rely only on auxiliary/community sources"]
     return []
 
 
@@ -173,6 +193,158 @@ def check_figures_embedded() -> list[str]:
     return errors
 
 
+def check_active_run_lock() -> list[str]:
+    lock = Path(".codex_runtime/active_benchmark_run.json")
+    if not lock.exists():
+        return []
+    try:
+        data = json.loads(read_text(lock))
+    except json.JSONDecodeError:
+        return [".codex_runtime/active_benchmark_run.json is invalid; clear or repair the active run lock before final response"]
+    status = str(data.get("status", "active")).lower()
+    if status in {"done", "completed", "released"}:
+        return []
+    if data.get("parallel_allowed") is True and data.get("user_requested_stacked_load") is True:
+        return []
+    return [
+        ".codex_runtime/active_benchmark_run.json indicates an active benchmark; finish/release it before starting or finalizing comparable workload results"
+    ]
+
+
+def is_required_task(task: dict) -> bool:
+    return bool(task.get("required") or task.get("approved"))
+
+
+def task_status(task: dict) -> str:
+    return str(task.get("status", "")).strip().lower()
+
+
+def task_id(stage: dict, task: dict) -> str:
+    return str(task.get("id") or f"stage{stage.get('stage', '?')}_{task.get('description', 'task')}")
+
+
+def task_path_exists(value: object) -> list[str]:
+    missing: list[str] = []
+    if isinstance(value, str):
+        if value and not Path(value).exists():
+            missing.append(value)
+    elif isinstance(value, list):
+        for item in value:
+            if isinstance(item, str) and item and not Path(item).exists():
+                missing.append(item)
+    return missing
+
+
+def iter_manifest_tasks(manifest: dict):
+    for stage in manifest.get("stages", []):
+        if not isinstance(stage, dict):
+            continue
+        for task in stage.get("tasks", []):
+            if isinstance(task, dict):
+                yield stage, task
+
+
+def check_workflow_manifest(enforce_required: bool) -> tuple[list[str], list[dict]]:
+    manifest_path = Path("config/workflow_manifest.json")
+    if not manifest_path.exists():
+        return (["config/workflow_manifest.json is missing"], [])
+    try:
+        manifest = json.loads(read_text(manifest_path))
+    except json.JSONDecodeError as exc:
+        return ([f"config/workflow_manifest.json is invalid JSON: {exc}"], [])
+
+    errors: list[str] = []
+    remaining: list[dict] = []
+    serial_required = manifest.get("serial_benchmark_required")
+    if serial_required is not True:
+        errors.append("config/workflow_manifest.json must set serial_benchmark_required=true")
+
+    for stage, task in iter_manifest_tasks(manifest):
+        required = is_required_task(task)
+        status = task_status(task)
+        plan_only = bool(task.get("plan_only"))
+        completed = status in {"completed", "complete", "success", "canonical", "skipped", "blocked"}
+        tid = task_id(stage, task)
+
+        if enforce_required and required and not completed:
+            remaining.append(
+                {
+                    "stage": stage.get("stage"),
+                    "task": tid,
+                    "status": status or "missing",
+                    "next_action": task.get("description") or "complete this required task",
+                }
+            )
+            continue
+
+        if required and status == "skipped" and not str(task.get("blocked_reason", "")).strip():
+            errors.append(f"{tid} is skipped without blocked_reason or user-accepted reason")
+        if required and status == "blocked" and not str(task.get("blocked_reason", "")).strip():
+            errors.append(f"{tid} is blocked without blocked_reason")
+
+        if status in {"completed", "complete", "success", "canonical"}:
+            missing_paths: list[str] = []
+            for path_value in task.get("artifact_paths", []):
+                missing_paths.extend(task_path_exists(path_value))
+
+            evidence = task.get("evidence", {})
+            if isinstance(evidence, dict):
+                for key, value in evidence.items():
+                    if key in {"run_id", "notes"}:
+                        continue
+                    missing_paths.extend(task_path_exists(value))
+                execution_keys = {"command_file", "raw_log", "serve_log", "client_log", "log_extract", "metrics"}
+                requires_execution = any(key in evidence for key in execution_keys)
+                if requires_execution and not plan_only:
+                    if not str(evidence.get("run_id", "")).strip() and "run_id" in evidence:
+                        errors.append(f"{tid} missing run_id in evidence")
+                    for key in ("command_file", "log_extract", "metrics"):
+                        if key in evidence and not str(evidence.get(key, "")).strip():
+                            errors.append(f"{tid} missing evidence.{key}")
+                    if not any(str(evidence.get(key, "")).strip() for key in ("raw_log", "serve_log", "client_log")) and any(
+                        key in evidence for key in ("raw_log", "serve_log", "client_log")
+                    ):
+                        errors.append(f"{tid} missing raw_log/serve_log/client_log evidence")
+            elif not plan_only:
+                errors.append(f"{tid} evidence must be an object")
+
+            for path in sorted(set(missing_paths)):
+                errors.append(f"{tid} missing artifact/evidence path: {path}")
+
+    if remaining:
+        errors.append(f"{len(remaining)} required/approved task(s) remain unfinished")
+    return errors, remaining
+
+
+def check_final_deliverables(paths: list[str], stage_requires_docs: bool) -> list[str]:
+    final_touched = any(path.startswith(("reports/final", "results/canonical", "figures/final")) for path in paths)
+    state_final = False
+    state_path = Path(".codex_runtime/kv_workflow_state.json")
+    if state_path.exists():
+        try:
+            state = json.loads(read_text(state_path))
+            state_final = int(state.get("stage", 0) or 0) >= 10 or str(state.get("phase", "")).lower() in {"final", "report", "review_fix"}
+        except (json.JSONDecodeError, TypeError, ValueError):
+            state_final = False
+    if not final_touched and not state_final:
+        return []
+
+    errors: list[str] = []
+    required = [
+        "reports/final_deployment_card.md",
+        "reports/final_report.md",
+        "results/canonical/final_launch_command.sh",
+        "results/canonical/final_metrics.json",
+        "results/canonical/run_manifest.yaml",
+    ]
+    for item in required:
+        if not Path(item).exists():
+            errors.append(f"final workflow check missing {item}")
+    if not Path("reports/final_report.pdf").exists() and not Path("reports/final_report_pdf_dependency_missing.md").exists():
+        errors.append("final workflow check missing reports/final_report.pdf or reports/final_report_pdf_dependency_missing.md")
+    return errors
+
+
 def main() -> int:
     if not Path("AGENTS.md").exists():
         return emit(True, "AGENTS.md not found; skip KV workflow stop check")
@@ -192,12 +364,19 @@ def main() -> int:
     errors.extend(check_long_logs_in_reports())
     errors.extend(check_canonical())
     errors.extend(check_figures_embedded())
+    errors.extend(check_active_run_lock())
+    manifest_errors, remaining_tasks = check_workflow_manifest(enforce_required=stage_requires_docs or active)
+    errors.extend(manifest_errors)
+    errors.extend(check_final_deliverables(paths, stage_requires_docs))
 
     if errors:
+        details = {"trigger": active_reason or diff_reason, "errors": errors}
+        if remaining_tasks:
+            details["remaining_tasks"] = remaining_tasks
         return emit(
             False,
             "KV workflow stop check failed. Re-read AGENTS.md, PROCESS.md, prompts/12_GUARDRAILS_HOOKS_AND_BUDGETS.md, prompts/15_STOP_HOOK_AND_COMMIT_CHECKS.md, and prompts/16_REAL_EXECUTION_EVIDENCE.md; fix blocking evidence, canonical, report, figure, PROCESS, or source-edit issues before final response.",
-            {"trigger": active_reason or diff_reason, "errors": errors},
+            details,
         )
 
     return emit(

@@ -44,9 +44,27 @@ doc title
 source type: official docs / official repo / model card / auxiliary
 URL or local path
 version / commit / date if available
+official launch command or official example
+project launch command
+difference / reason / accepted risk
 用于本 workflow 的具体规则
 不确定点
 ```
+
+必须覆盖：
+
+```text
+engine: 优先官方文档和官方 repo examples
+backend: CUDA/CANN/ROCm/vLLM-Ascend 等官方文档或官方 repo
+model: model card 或官方 repo 中的部署说明
+offload: 启用 LMCache 时锁定 LMCache 官方文档；只有用户明确启用 Mooncake/multi-node 时才锁定 Mooncake 官方文档
+```
+
+Stage 3/8/9 的启动命令和调参命令必须引用本文件中的对应条目。如果用户提供命令与官方示例不同，记录差异和风险，不要静默改写成未经验证的命令。
+
+## Mooncake Scope
+
+默认主流程是单节点 LMCache/offload 诊断。Mooncake 不是默认必做项。只有用户明确要求 multi-node、Mooncake 或特定 offload extension 时，才进入 scope；进入后必须记录官方文档来源、命令来源、最大尝试次数、失败摘要和降级策略。
 
 ## 完成条件
 

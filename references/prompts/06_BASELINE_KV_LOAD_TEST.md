@@ -14,6 +14,12 @@ high_session
 
 默认可开启 engine 原生 prefix cache，但不接入 LMCache/Mooncake。
 
+## 串行执行规则
+
+所有 workload 必须串行运行。每次运行前确认没有其他 active run 正在使用同一服务端口、同一 GPU/Ascend 设备、同一模型服务或同一输出目录。不要并发运行 low_load、high_load、high_session；并发会污染 TTFT、ITL/TPOT、throughput、cache hit 和 HBM/CPU memory 指标。
+
+只有用户明确要求叠加压力测试时才允许并发运行，并且必须标记为 `non_standard_stacked_load`，不得与标准串行 baseline 混入同一主表。
+
 ## 必须记录
 
 ```text

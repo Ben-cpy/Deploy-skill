@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "workflow": "llm-serving-kv-diagnostics",
+  "mode": "execution",
+  "serial_benchmark_required": true,
+  "parallel_benchmark_allowed_only_for_user_requested_stacked_load": true,
+  "mooncake_enabled": false,
+  "notes": [
+    "Keep benchmark/workload/trial runs serial unless the user explicitly requests stacked-load testing.",
+    "Plan-only tasks must be explicitly marked plan_only=true and must not be counted as completed execution evidence."
+  ],
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Official Docs & Scope Lock",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage1_official_docs_lock",
+          "description": "Lock official engine/backend/model/offload docs and command provenance.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/official_docs_lock.md",
+            "reports/scope_lock.md"
+          ],
+          "evidence": {
+            "report": "reports/official_docs_lock.md"
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 2,
+      "name": "Environment & Stack Locking",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage2_basic_info",
+          "description": "Record environment, versions, hardware, runtime, and resolved paths.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/basic-info.md"
+          ],
+          "evidence": {
+            "report": "reports/basic-info.md"
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Engine Smoke Bring-up",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage3_smoke_bringup",
+          "description": "Run official-doc-aligned launch and single-request smoke test.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/smoke_bringup.md"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/smoke_bringup.md"
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 4,
+      "name": "Model Memory & KV Cache Estimate",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage4_kv_estimate",
+          "description": "Estimate model memory and KV capacity, then calibrate with runtime logs when available.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/model_memory_kv_estimate.md",
+            "figures/kv_capacity_breakdown.png"
+          ],
+          "evidence": {
+            "report": "reports/model_memory_kv_estimate.md",
+            "figure_paths": [
+              "figures/kv_capacity_breakdown.png"
+            ]
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 5,
+      "name": "Workload Sizing with multi-turn.py",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage5_workload_sizing",
+          "description": "Define low_load, high_load, and high_session workload shapes with multi-turn.py.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/workload_sizing.md",
+            "experiments/workloads.yaml"
+          ],
+          "evidence": {
+            "command_file": "",
+            "metrics": "",
+            "report": "reports/workload_sizing.md"
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 6,
+      "name": "Baseline KV-oriented Load Test",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage6_baseline_low_load",
+          "description": "Run low_load baseline serially.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/baseline_low_load.md"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/baseline_low_load.md"
+          },
+          "blocked_reason": ""
+        },
+        {
+          "id": "stage6_baseline_high_load",
+          "description": "Run high_load baseline serially.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/baseline_high_load.md"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/baseline_high_load.md"
+          },
+          "blocked_reason": ""
+        },
+        {
+          "id": "stage6_baseline_high_session",
+          "description": "Run high_session baseline serially.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/baseline_high_session.md",
+            "reports/prefix_cache_validation.md",
+            "reports/baseline_kv_behavior.md",
+            "figures/baseline_latency_summary.png"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/baseline_kv_behavior.md",
+            "figure_paths": [
+              "figures/baseline_latency_summary.png"
+            ]
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 7,
+      "name": "Parallelism Comparison",
+      "status": "pending",
+      "required": false,
+      "tasks": [
+        {
+          "id": "stage7_parallelism_comparison",
+          "description": "Compare at most three TP/DP configs with identical serial workloads.",
+          "status": "pending",
+          "required": false,
+          "plan_only": false,
+          "artifact_paths": [
+            "experiments/parallelism_candidates.yaml",
+            "reports/parallelism_comparison.md",
+            "reports/parallelism_decision.md",
+            "figures/parallelism_tradeoff.png"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/parallelism_decision.md",
+            "figure_paths": [
+              "figures/parallelism_tradeoff.png"
+            ]
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 8,
+      "name": "KV Cache Offload Extension",
+      "status": "pending",
+      "required": false,
+      "tasks": [
+        {
+          "id": "stage8_lmcache_offload",
+          "description": "Run LMCache single-node A/B tests serially when enabled.",
+          "status": "pending",
+          "required": false,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/lmcache_launch.md",
+            "reports/offload_decision.md",
+            "figures/offload_ablation.png"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/offload_decision.md",
+            "figure_paths": [
+              "figures/offload_ablation.png"
+            ]
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 9,
+      "name": "Targeted vLLM Parameter Tuning",
+      "status": "pending",
+      "required": false,
+      "tasks": [
+        {
+          "id": "stage9_parameter_tuning",
+          "description": "Run bounded parameter trials against the identified bottleneck.",
+          "status": "pending",
+          "required": false,
+          "plan_only": false,
+          "artifact_paths": [
+            "experiments/parameter_trials.yaml",
+            "reports/parameter_trials.md",
+            "reports/parameter_decision.md",
+            "figures/parameter_tradeoff.png"
+          ],
+          "evidence": {
+            "run_id": "",
+            "command_file": "",
+            "raw_log": "",
+            "log_extract": "",
+            "metrics": "",
+            "report": "reports/parameter_decision.md",
+            "figure_paths": [
+              "figures/parameter_tradeoff.png"
+            ]
+          },
+          "blocked_reason": ""
+        }
+      ]
+    },
+    {
+      "stage": 10,
+      "name": "Final Deployment Report",
+      "status": "pending",
+      "required": true,
+      "tasks": [
+        {
+          "id": "stage10_final_report",
+          "description": "Generate final card, long Markdown report, and PDF or dependency-missing note.",
+          "status": "pending",
+          "required": true,
+          "plan_only": false,
+          "artifact_paths": [
+            "reports/final_deployment_card.md",
+            "reports/final_report.md",
+            "results/canonical/final_launch_command.sh",
+            "results/canonical/final_metrics.json",
+            "results/canonical/run_manifest.yaml"
+          ],
+          "evidence": {
+            "report": "reports/final_report.md",
+            "metrics": "results/canonical/final_metrics.json"
+          },
+          "blocked_reason": ""
+        }
+      ]
+    }
+  ]
+}

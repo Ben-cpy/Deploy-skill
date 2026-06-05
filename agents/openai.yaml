@@ -1,4 +1,4 @@
 interface:
   display_name: "LLM Serving KV Diagnostics"
-  short_description: "Single-node KV cache serving workflow"
-  default_prompt: "Use $llm-serving-kv-diagnostics to initialize and run a single-node LLM serving KV cache diagnostic workflow."
+  short_description: "Single-node KV diagnostics workflow"
+  default_prompt: "Use $llm-serving-kv-diagnostics to initialize, continue, or validate a single-node LLM serving KV cache diagnostic workflow."

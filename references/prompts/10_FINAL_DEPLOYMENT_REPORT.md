@@ -2,17 +2,27 @@
 
 ## 目标
 
-生成唯一可信的最终部署卡片。用户最终只需要阅读 md 和其中插入的 png，即可知道推荐配置、证据路径、已知坏配置和风险。
+生成唯一可信的最终部署卡片、中文长报告和 PDF。用户最终主要阅读 `reports/final_report.md` 和 `reports/final_report.pdf`，必要时再看 `reports/final_deployment_card.md`。
 
 ## 必须输出
 
 ```text
 reports/final_deployment_card.md
+reports/final_report.md
+reports/final_report.pdf
 results/canonical/final_launch_command.sh
 results/canonical/final_metrics.json
 results/canonical/run_manifest.yaml
 figures/final_overview.png
 ```
+
+如果 PDF 渲染工具缺失，必须保留 `reports/final_report.md`，并创建：
+
+```text
+reports/final_report_pdf_dependency_missing.md
+```
+
+说明尝试的渲染命令和缺少的依赖。不得因为缺少 PDF 工具而省略长报告内容。
 
 ## Final Deployment Card 必须包含
 
@@ -39,6 +49,20 @@ prefix cache validation
 LMCache decision
 known bad configs summary
 final recommendation
+```
+
+## Final Report 必须包含
+
+```text
+中文正文
+面向公司老板或业务负责人，语言克制、学术化、简洁、客观中立
+按 Stage 1-10 线性组织
+关键 png 直接插入 md
+关键数据表来自 results/canonical/
+最终启动命令
+核心结论、适用边界、风险边界
+failed/scratch 只作为 known bad 简短摘要
+raw log 只给路径，不要求用户阅读
 ```
 
 ## 可读性要求
@@ -72,6 +96,9 @@ final recommendation
 是否 PROCESS.md 已更新并压缩
 是否图已插入 md
 是否术语首次出现已解释
+是否 config/workflow_manifest.json 中 required/approved 子任务全部 completed 或有明确用户接受的 skipped/blocked 记录
+是否 reports/final_report.md 存在且引用 canonical 数据和关键 png
+是否 reports/final_report.pdf 存在，或已记录 PDF 渲染依赖缺失
 ```
 
 

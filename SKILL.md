@@ -11,9 +11,9 @@ Use this skill for a single-node, KV-pressure-driven LLM serving diagnostic work
 
 Skill installation only makes these instructions and resources available to Codex. Project hooks are not installed automatically by the skill loader. When the user asks to initialize or bootstrap a target project, run the initializer below to create project-level files and hooks.
 
-## Initialize A Project
+## Initialize
 
-Run this from any Codex session after the skill is available:
+Use this behavior when the user asks to initialize, bootstrap, install, or prepare a target repository for the KV diagnostics workflow. Run this from the skill repository or with an equivalent path to the initializer:
 
 ```bash
 python scripts/init_project.py --project <project_root>
@@ -29,6 +29,7 @@ README.md
 PROCESS.md
 PLOT_STYLE.md
 config/workflow.yaml
+config/workflow_manifest.json
 prompts/
 hooks/
 templates/
@@ -47,7 +48,9 @@ multi-turn.py
 
 After initialization, tell the user to run `/hooks` in Codex inside the target project and inspect/trust the project Stop hook. Do not start vLLM, run benchmarks, or modify engine source during initialization.
 
-## Operating Workflow
+## Continue / Execute
+
+Use this behavior when the target project already exists and the user asks Codex to continue, execute the next stage, finish remaining tasks, or resume after partial work.
 
 Read only the material needed for the current stage. Start with:
 
@@ -58,6 +61,7 @@ PROCESS.md
 prompts/00_WORKFLOW_MAP.md
 prompts/00_ROLE_AND_RESEARCH_TASTE.md
 prompts/12_GUARDRAILS_HOOKS_AND_BUDGETS.md
+config/workflow_manifest.json
 current stage prompt
 ```
 
@@ -88,11 +92,39 @@ Main stages:
 10. Final Deployment Report
 ```
 
+Before stopping in execution mode, inspect `config/workflow_manifest.json`. Continue working when required/approved tasks remain and the environment still allows progress. Do not report completion after finishing only a subset of the manifest. Each completed execution task must record `run_id`, command path, log extract, metrics path, report path, and required figure paths unless the user explicitly requested plan-only work.
+
+All benchmark, workload, trial, and A/B runs are serial by default. Before launching a workload, confirm no other active workload is using the same service port, model server, GPU/Ascend device, or benchmark output directory. Parallel benchmark execution is only allowed when the user explicitly requests stacked-load testing; mark those results as non-standard and keep them out of the standard comparison tables.
+
+## Validate / Final Check
+
+Use this behavior when the user asks whether the workflow is complete, asks for a final answer/report, or after Stage 10. Run the project Stop hook or equivalent final check before responding:
+
+```bash
+python .codex/hooks/stop_kv_check.py
+```
+
+The final check must cover Stage 1-10 required artifacts, official docs lock quality, source edit guardrails, manifest completion, real execution evidence, canonical result uniqueness, figure embedding, and final report delivery. If anything is missing, continue the corresponding stage or report the exact blocker; do not mark the workflow complete.
+
+The primary user-facing deliverables are:
+
+```text
+reports/final_report.md
+reports/final_report.pdf
+reports/final_deployment_card.md
+```
+
+If PDF rendering tools are unavailable, keep `reports/final_report.md`, create `reports/final_report_pdf_dependency_missing.md`, and state the missing renderer. Do not invent data, figures, or commands to fill the report.
+
 ## Hard Rules
 
 Do not modify vLLM, SGLang, LMCache, Mooncake, Transformers, Torch, FlashInfer, site-packages engine code, or vendor runtime source. If profiling needs a hack, add a switchable and reversible monkey patch under `instrumentation/` and document its risk.
 
 Use official docs as the first source for deployment, tuning, and offload behavior. Community posts can support but cannot replace official documentation.
+
+Stage 1 must lock official engine, backend, model, and enabled offload sources. For launch commands, compare the official example or official repository command with the project command and record the difference. Stage 3, Stage 8, and Stage 9 must cite the relevant lock entry before running launch or tuning commands.
+
+Keep the default scope single-node with LMCache as the optional offload path. Mooncake is not a default requirement. Only include Mooncake when the user explicitly enables multi-node/offload extension work; then lock Mooncake official docs, command provenance, maximum attempt count, failure summary, and fallback decision. Mooncake failures must not block unrelated single-node LMCache conclusions unless the user goal depends on Mooncake.
 
 Persist all service logs to files. Reports should cite extracted metrics and raw log paths, not paste long logs.
 

@@ -4,6 +4,8 @@
 
 v4 已覆盖用户两批约束，并修复 v3 的结构性缺口。核心修复包括：顶层 `PROCESS.md`、更硬的 hook spec、官方文档锁模板、真实执行证据规范、数据状态机、figure/report 检查和按需读取策略。
 
+当前版本还必须覆盖：workflow/subtask manifest、benchmark 串行执行规则、官方启动命令对齐、Stage 1-10 final workflow check、中文长报告和 PDF 交付流程、Mooncake 可选 scope 和失败降级策略。
+
 ## 文件完整性
 
 必须存在：
@@ -35,7 +37,8 @@ PROCESS.md
 17_PLOT_AND_VISUAL_REPORTING.md
 hooks_specs/
 templates/
-checklists/
+WORKFLOW_MANIFEST_TEMPLATE.json
+FINAL_REPORT_TEMPLATE.md
 ```
 
 ## 无冲突规则
@@ -45,3 +48,5 @@ checklists/
 - canonical 唯一不等于 raw 数据唯一；raw 可以多次，canonical 只能一份有效结果。
 - hook 优先不等于 prompt 无效；prompt 负责语义指导，hook 负责硬检查。
 - stop hook 不在所有回复触发，只在真实执行阶段和相关目录修改时触发。
+- Mooncake 可选不等于忽略用户痛点；只有用户明确启用时进入 scope，并必须记录官方文档、命令来源、失败摘要和降级结论。
+- benchmark 串行不等于不能做压力叠加；叠加压力测试必须由用户明确要求并隔离标注。
