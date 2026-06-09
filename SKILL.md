@@ -35,6 +35,8 @@ hooks/
 templates/
 experiments/
 instrumentation/
+instrumentation/kv_capacity_calculator.py
+instrumentation/vllm_kv_log_extract.py
 runs/attempts/
 runs/raw/
 runs/scratch_failed/
@@ -170,5 +172,7 @@ Adjust `--base-url`, `--model`, `--tokenizer`, concurrency/session counts, token
 `references/matplotlib_paper_style.md` is the integrated plotting guideline provided by the user.
 
 `assets/templates/` contains report, manifest, glossary, workflow config, and project README templates to copy into initialized projects.
+
+`assets/instrumentation/` contains deterministic scripts copied into project `instrumentation/`, including vLLM KV log extraction and model KV capacity calculation.
 
 `assets/multi-turn.py` is the bundled multi-round Chat Completions workload driver.

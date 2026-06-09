@@ -22,7 +22,7 @@
 ## 核心证据链
 
 ```text
-官方文档锁定 -> 环境锁定 -> smoke 正确性 -> 模型结构/KV 估算 -> runtime KV 日志校准 -> multi-turn dry-run KV pressure -> low/high/high_session 真实负载 -> baseline 退化模式 -> parallelism 对比 -> LMCache A/B -> 参数保留/丢弃 -> final deployment card
+官方文档锁定 -> 环境锁定 -> smoke 正确性 -> 固定脚本抽取 runtime KV 日志 -> deterministic KV calculator 估算/校准 -> multi-turn dry-run KV pressure -> low/high/high_session 真实负载 -> baseline 退化模式 -> parallelism 对比 -> LMCache A/B -> 参数保留/丢弃 -> final deployment card
 ```
 
 ## 不做什么

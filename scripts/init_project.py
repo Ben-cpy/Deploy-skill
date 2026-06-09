@@ -278,6 +278,7 @@ def main() -> int:
     copy_tree_files(REFERENCES / "prompts", project / "prompts", args.force, changed)
     copy_tree_files(REFERENCES / "hooks_specs", project / "hooks", args.force, changed)
     copy_tree_files(ASSETS / "templates", project / "templates", args.force, changed)
+    copy_tree_files(ASSETS / "instrumentation", project / "instrumentation", args.force, changed)
 
     if not args.no_copy_multi_turn:
         copy_file(ASSETS / "multi-turn.py", project / "multi-turn.py", args.force, changed)

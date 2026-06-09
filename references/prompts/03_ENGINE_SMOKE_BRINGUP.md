@@ -11,6 +11,16 @@
 3. 如果启动失败，在最大尝试次数内只修改必要参数。
 4. 启动成功后跑 single-request correctness test。
 5. single-request 通过后粗略计算 decode speed。
+6. 如果 engine 是 vLLM，立即对成功运行的 `serve.log` 执行固定日志抽取脚本，不要等到 Stage 4 临时生成解析逻辑：
+
+```bash
+python instrumentation/vllm_kv_log_extract.py \
+  --log runs/attempts/<run_id>/serve.log \
+  --out runs/attempts/<run_id>/vllm_kv_log_extract.json \
+  --text-out runs/attempts/<run_id>/log_extract.txt
+```
+
+如果运行已晋级到 `runs/raw/<run_id>/`，必须同步保留 `vllm_kv_log_extract.json` 和 `log_extract.txt`。
 
 ## 最大迭代次数
 
@@ -29,6 +39,8 @@ launch command
 serve log path
 client request
 client response
+log_extract.txt
+vllm_kv_log_extract.json
 single-request wall time
 generated tokens
 rough decode speed = max_tokens / wall_time

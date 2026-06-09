@@ -37,6 +37,17 @@ log_extract.txt
 
 必须使用 grep/rg/awk/python parser 等命令抽取关键行，报告中只展示抽取结果。
 
+vLLM 启动成功后必须优先使用项目内固定解析器，而不是现场写一次性 grep：
+
+```bash
+python instrumentation/vllm_kv_log_extract.py \
+  --log runs/attempts/<run_id>/serve.log \
+  --out runs/attempts/<run_id>/vllm_kv_log_extract.json \
+  --text-out runs/attempts/<run_id>/log_extract.txt
+```
+
+其他 engine 可以先用 grep/rg/awk/python parser，但如果后续进入常用路径，应补成 `instrumentation/` 下可复用脚本。
+
 重点抽取：
 
 ```text

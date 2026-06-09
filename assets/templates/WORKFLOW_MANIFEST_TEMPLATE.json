@@ -96,9 +96,17 @@
           "plan_only": false,
           "artifact_paths": [
             "reports/model_memory_kv_estimate.md",
+            "reports/runtime_kv_log_parse.md",
+            "runs/raw/<run_id>/vllm_kv_log_extract.json",
+            "runs/raw/<run_id>/kv_capacity_estimate.json",
             "figures/kv_capacity_breakdown.png"
           ],
           "evidence": {
+            "run_id": "",
+            "raw_log": "",
+            "log_extract": "",
+            "vllm_kv_log_extract_json": "",
+            "kv_capacity_estimate_json": "",
             "report": "reports/model_memory_kv_estimate.md",
             "figure_paths": [
               "figures/kv_capacity_breakdown.png"

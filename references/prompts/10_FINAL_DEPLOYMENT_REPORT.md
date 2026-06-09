@@ -41,6 +41,7 @@ max_num_batched_tokens
 gpu_memory_utilization
 per-DP KV capacity
 aggregate KV capacity
+usable context tokens / token-equivalent KV capacity as the primary capacity unit
 single-request decode speed
 low_load result
 high_load result
