@@ -32,7 +32,6 @@ KEY_PATTERNS = [
     "Available KV cache memory",
     "GPU KV cache size",
     "NPU KV cache size",
-    "Maximum concurrency",
     "Free memory on device",
     "Current KV cache memory",
     "kv_cache_dtype",
@@ -178,12 +177,6 @@ def extract(log_path: Path) -> dict[str, Any]:
     if match:
         data["kv_summary"]["gpu_kv_cache_tokens"] = parse_number(match.group(1))
         data["kv_summary"]["gpu_kv_cache_tokens_text"] = match.group(0)
-
-    match = last_match(r"Maximum concurrency for\s*([0-9,]+)\s*tokens per request:\s*([0-9.]+)x", text)
-    if match:
-        data["kv_summary"]["max_concurrency_request_tokens"] = parse_number(match.group(1))
-        data["kv_summary"]["max_concurrency"] = float(match.group(2))
-        data["kv_summary"]["max_concurrency_text"] = match.group(0)
 
     match = last_match(r"Block size is set to\s*([0-9]+)", text)
     if match:

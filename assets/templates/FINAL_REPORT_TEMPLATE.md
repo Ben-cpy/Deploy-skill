@@ -18,7 +18,7 @@
 
 ## 4. Model Memory & KV Cache Estimate
 
-插入关键 KV capacity 图和表。主结果必须写 per-DP usable context tokens / token-equivalent KV capacity 和 aggregate usable context tokens；`Maximum concurrency for <N> tokens` 只作为 `usable_context_tokens / N` 的派生解释。解释 max model length 与 workload pressure 的关系。
+插入关键 KV capacity 图和表。主结果必须只写 per-DP usable context tokens / token-equivalent KV capacity 和 aggregate usable context tokens；不要写 `Maximum concurrency for <N> tokens` 或任何并发折算。解释 max model length 与 workload pressure 的关系。
 
 ## 5. Workload Sizing
 

@@ -276,12 +276,6 @@ def main() -> int:
     runtime_tokens = as_int(kv_summary.get("gpu_kv_cache_tokens"))
     selected_per_dp_tokens = runtime_tokens or static_per_dp_tokens
     aggregate_tokens = selected_per_dp_tokens * dp if selected_per_dp_tokens is not None else None
-    request_context_tokens = as_int(kv_summary.get("max_concurrency_request_tokens")) or max_model_len
-    concurrency_for_request_context = (
-        selected_per_dp_tokens / request_context_tokens
-        if selected_per_dp_tokens is not None and request_context_tokens
-        else None
-    )
 
     calibration: dict[str, Any] = {}
     if runtime_tokens and kv_memory_bytes:
@@ -345,9 +339,7 @@ def main() -> int:
             "selected_aggregate_tokens": aggregate_tokens,
             "usable_context_tokens_per_dp": selected_per_dp_tokens,
             "aggregate_usable_context_tokens": aggregate_tokens,
-            "request_context_tokens_for_concurrency": request_context_tokens,
-            "concurrency_for_request_context": concurrency_for_request_context,
-            "capacity_unit_note": "Token-equivalent usable KV/context capacity, not a request count. Concurrency is derived as usable_context_tokens_per_dp / request_context_tokens_for_concurrency.",
+            "capacity_unit_note": "Token-equivalent usable KV/context capacity. Do not report derived request concurrency in capacity summaries.",
             "selection_rule": "runtime_reported_per_dp_tokens overrides static formula when present; otherwise use static_formula_per_dp_tokens.",
         },
         "sliding_window": apply_sliding_window(layers, cfg, max_model_len),

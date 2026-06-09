@@ -53,7 +53,6 @@ python instrumentation/vllm_kv_log_extract.py \
 ```text
 Available KV cache memory
 GPU/NPU KV cache size
-Maximum concurrency
 cache block
 prefix cache hit/miss
 preemption
